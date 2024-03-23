@@ -1,0 +1,462 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+
+```{r}
+library(readxl)
+library(nlme)
+library(ggplot2)
+library(gplots)
+library(car)
+
+```
+
+# Chapter 5 analysis
+
+```{r}
+
+data_set <- read_excel("Infant_eeg_mvpa_data.xlsx") 
+data_set 
+```
+
+
+
+
+```{r}
+
+data_set_8 <- read_excel("8way_Infant_eeg_mvpa_data.xlsx") 
+data_set_8
+
+
+```
+
+Composite SES variable
+
+```{r}
+
+income_z <- (data_set$Income - mean(data_set$Income)) / sd(data_set$Income)
+
+ed_z <- (data_set$Mother_ed - mean(data_set$Mother_ed)) / sd(data_set$Mother_ed)
+
+data_set$SES <- (income_z + ed_z)/2 
+
+m <- mean(data_set$SES)
+
+data_set$SES_bin <- ifelse(data_set$SES > m, 1, 0)
+
+```
+
+
+
+
+```{r}
+
+income_z <- (data_set_8$Income - mean(data_set_8$Income)) / sd(data_set_8$Income)
+
+ed_z <- (data_set_8$Mother_ed - mean(data_set_8$Mother_ed)) / sd(data_set_8$Mother_ed)
+
+data_set_8$SES <- (income_z + ed_z)/2 
+
+m <- mean(data_set_8$SES)
+
+data_set_8$SES_bin <- ifelse(data_set_8$SES > m, 1, 0)
+
+```
+
+
+
+
+```{r}
+
+total.lme <- lme(Total_und_1 ~ Age * Total_diff * SES , random= ~ 1 | ID, data = data_set )
+
+anova(total.lme)
+
+```
+
+```{r}
+
+data_set$With_cat
+
+```
+
+```{r}
+
+total.lme <- lme(Total_diff ~ Age  * SES + Age * Total_und_1 + SES * Total_und_1 + With_cat, random= ~ 1 | ID, data = data_set )
+
+anova(total.lme)
+
+```
+
+
+
+```{r}
+
+total.lme <- lme(Total_und_1 ~ Age  * SES + Age * Total_diff + SES * Total_diff + Age * With_cat + SES * With_cat + Total_diff * With_cat, random= ~ 1 | ID, data = data_set )
+
+anova(total.lme)
+
+```
+
+
+
+```{r}
+
+total.lme <- lme(Total_und_1 ~ Age * SES  + Total_diff  + With_cat , random= ~ 1 | ID, data = data_set )
+
+anova(total.lme)
+
+```
+
+
+```{r}
+
+total.lme <- lme(Total_und_1 ~ Age * Total_diff * SES , random= ~ 1 | ID, data = data_set_8 )
+
+anova(total.lme)
+
+```
+
+
+
+
+```{r}
+total.lme <- lme(Total_und_1 ~ Age * Total_diff * SES , random= ~ 1 | ID, data = data_set )
+
+anova(total.lme)
+
+
+
+total.lme <- lme(Total_diff ~ Age * Total_und_1 * SES , random= ~ 1 | ID, data = data_set )
+
+anova(total.lme)
+
+
+
+```
+
+
+
+
+
+
+
+```{r}
+
+ggplot(data_set, aes(x = Age, y = Total_diff, colour = Income, size=5)) +
+  geom_point()
+
+
+```
+
+
+
+```{r}
+
+ggplot(data_set, aes(x = Age, y = Total_diff, colour = Mother_ed, size=5)) +
+  geom_point()
+
+
+```
+
+
+
+```{r}
+
+
+fit <- lm(Total_diff ~ Age * SES_bin, data = data_set)
+
+#ggplot(fit, type = "pred", terms = c("Age", "SES_bin"))+
+  
+
+ggplot(data_set, aes(Age, Total_diff)) +
+  geom_smooth(method = "lm") +
+  geom_line(size = 1.2, aes(group = SES_bin, color = SES_bin)) +
+  geom_point(size = 2.6, aes(color = SES_bin), shape = 15)
+
+
+```
+
+
+
+
+```{r}
+
+ggplot(data_set) +
+  aes(x = Age, y = Total_diff, color = as.factor(SES_bin)) +
+  geom_point() +
+  geom_smooth(method = "lm",alpha=0.05)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+cat.lme <- lme(Cat_diff ~ Age + Total_und_1  + Income + Cat, random= ~ 1 | ID, data = data_set_8 )
+
+anova(cat.lme)
+
+```
+
+
+
+```{r}
+
+dog.lme <- lme(Cat_diff ~ Age + Total_und_1 + Income + Dog, random= ~ 1 | ID, data = data_set_8 )
+
+anova(dog.lme)
+
+dog.lme <- lme(Cat_diff ~ Age + Total_und_1 + Income + Dog, random= ~ 1 | ID, data = data_set )
+
+anova(dog.lme)
+
+```
+
+
+
+
+
+
+```{r}
+
+face.lme <- lme(Face_diff ~ Age + Total_und_1 + Income + Face, random= ~ 1 | ID, data = data_set_8 )
+
+anova(face.lme)
+
+face.lme <- lme(Face_diff ~ Age + Total_und_1 + Income + Face, random= ~ 1 | ID, data = data_set )
+
+anova(face.lme)
+
+```
+
+
+
+
+```{r}
+
+baby.lme <- lme(Face_diff ~ Age + Total_und_1 + Income + Baby, random= ~ 1 | ID, data = data_set_8 )
+
+anova(baby.lme)
+
+baby.lme <- lme(Face_diff ~ Age + Total_und_1 + Income + Baby, random= ~ 1 | ID, data = data_set )
+
+anova(baby.lme)
+
+```
+
+
+
+
+
+
+```{r}
+
+bottle.lme <- lme(Face_diff ~ Age + Total_und_1 + Income + Bottle, random= ~ 1 | ID, data = data_set_8 )
+
+anova(bottle.lme)
+
+bottle.lme <- lme(Face_diff ~ Age + Total_und_1 + Income + Bottle, random= ~ 1 | ID, data = data_set )
+
+anova(bottle.lme)
+
+```
+
+
+
+
+```{r}
+
+banana.lme <- lme(Face_diff ~ Age + Total_und_1 + Income + Banana, random= ~ 1 | ID, data = data_set_8 )
+
+anova(banana.lme)
+
+banana.lme <- lme(Face_diff ~ Age + Total_und_1 + Income + Banana, random= ~ 1 | ID, data = data_set )
+
+anova(banana.lme)
+
+```
+
+
+
+
+
+```{r}
+
+chair.lme <- lme(Face_diff ~ Age + Total_und_1 + Income + Highchair, random= ~ 1 | ID, data = data_set_8 )
+
+anova(chair.lme)
+
+```
+
+
+
+
+```{r}
+
+tree.lme <- lme(Face_diff ~ Age + Total_und_1 + Income + Tree, random= ~ 1 | ID, data = data_set_8 )
+
+anova(tree.lme)
+
+tree.lme <- lme(Face_diff ~ Age + Total_und_1 + Income + Tree, random= ~ 1 | ID, data = data_set )
+
+anova(tree.lme)
+
+```
+
+
+
+
+# include/exclude group comparisons
+
+```{r}
+
+exc_set <- read_excel("EXCLUDED_Infant_data.xlsx") 
+exc_set 
+
+
+```
+
+## Levene test for variance 
+
+```{r}
+
+newdf <- data.frame(age=c(data_set$Age,exc_set$Age),
+                    source=c(rep("In",times=length(data_set$Age)),rep("Ex",times=length(exc_set$Age))))
+
+leveneTest(newdf$age~newdf$source)
+
+```
+
+
+
+
+
+```{r}
+
+newdf <- data.frame(x=c(data_set$Total_und_1,exc_set$Total_und_1),
+                    source=c(rep("In",times=length(data_set$Total_und_1)),rep("Ex",times=length(exc_set$Total_und_1))))
+
+leveneTest(newdf$x~newdf$source)
+
+```
+
+
+```{r}
+
+newdf <- data.frame(x=c(data_set$Mother_ed,exc_set$Mother_ed),
+                    source=c(rep("In",times=length(data_set$Mother_ed)),rep("Ex",times=length(exc_set$Mother_ed))))
+
+leveneTest(newdf$x~newdf$source)
+
+```
+
+
+
+
+```{r}
+
+newdf <- data.frame(x=c(data_set$Income,exc_set$Income),
+                    source=c(rep("In",times=length(data_set$Income)),rep("Ex",times=length(exc_set$Income))))
+
+leveneTest(newdf$x~newdf$source)
+
+```
+
+
+
+
+
+
+
+## t-test for group differences 
+
+
+```{r}
+
+newdf <- data.frame(x=c(data_set$Age,exc_set$Age),
+                    source=c(rep("In",times=length(data_set$Age)),rep("Ex",times=length(exc_set$Age))))
+
+t.test(x ~ source, data = newdf)
+
+```
+
+
+
+```{r}
+
+newdf <- data.frame(x=c(data_set$Total_und_1,exc_set$Total_und_1),
+                    source=c(rep("In",times=length(data_set$Total_und_1)),rep("Ex",times=length(exc_set$Total_und_1))))
+
+t.test(x ~ source, data = newdf)
+
+```
+
+
+
+
+```{r}
+
+newdf <- data.frame(x=c(data_set$Mother_ed,exc_set$Mother_ed),
+                    source=c(rep("In",times=length(data_set$Mother_ed)),rep("Ex",times=length(exc_set$Mother_ed))))
+
+t.test(x ~ source, data = newdf)
+
+```
+
+
+
+
+```{r}
+
+newdf <- data.frame(x=c(data_set$Income,exc_set$Income),
+                    source=c(rep("In",times=length(data_set$Income)),rep("Ex",times=length(exc_set$Income))))
+
+t.test(x ~ source, data = newdf)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
